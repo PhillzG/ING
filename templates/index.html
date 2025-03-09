@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Estate Price Prediction</title>
+    <script>
+        async function predictPrice() {
+            let data = {
+                "City": document.getElementById("city").value,
+                "District": document.getElementById("district").value,
+                "Area_m2": parseFloat(document.getElementById("area").value),
+                "Rooms": parseInt(document.getElementById("rooms").value),
+                "Year_Built": parseInt(document.getElementById("year_built").value),
+                "Floor": parseInt(document.getElementById("floor").value),
+                "Condition": document.getElementById("condition").value,
+                "Interest_Rate": parseFloat(document.getElementById("interest_rate").value),
+                "Inflation": parseFloat(document.getElementById("inflation").value),
+                "Market_Trend": document.getElementById("market_trend").value,
+                "Energy_Efficiency": document.getElementById("energy_efficiency").value,
+                "Green_Access": parseInt(document.getElementById("green_access").value),
+                "Carbon_Footprint": document.getElementById("carbon_footprint").value
+            };
+
+            let response = await fetch("/predict", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            let result = await response.json();
+            document.getElementById("result").innerHTML = 
+                `<p><b>Linear Regression Price:</b> ${result["Linear Regression Price"]} PLN</p>
+                 <p><b>XGBoost Price:</b> ${result["XGBoost Price"]} PLN</p>`;
+        }
+    </script>
+</head>
+<body>
+    <h1>Real Estate Price Prediction</h1>
+    <label for="city">City:</label>
+    <select id="city">
+        {% for city in cities %}
+        <option value="{{ city }}">{{ city }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="district">District:</label>
+    <input type="text" id="district">
+
+    <label for="area">Area (m²):</label>
+    <input type="number" id="area">
+
+    <label for="rooms">Rooms:</label>
+    <input type="number" id="rooms">
+
+    <label for="year_built">Year Built:</label>
+    <input type="number" id="year_built">
+
+    <label for="floor">Floor:</label>
+    <input type="number" id="floor">
+
+    <label for="condition">Condition:</label>
+    <select id="condition">
+        <option value="Nowe">Nowe</option>
+        <option value="Po remoncie">Po remoncie</option>
+        <option value="Do remontu">Do remontu</option>
+    </select>
+
+    <label for="interest_rate">Interest Rate:</label>
+    <input type="number" id="interest_rate" step="0.1">
+
+    <label for="inflation">Inflation:</label>
+    <input type="number" id="inflation" step="0.1">
+
+    <label for="market_trend">Market Trend:</label>
+    <select id="market_trend">
+        <option value="Wzrostowy">Wzrostowy</option>
+        <option value="Stabilny">Stabilny</option>
+        <option value="Spadkowy">Spadkowy</option>
+    </select>
+
+    <label for="energy_efficiency">Energy Efficiency:</label>
+    <select id="energy_efficiency">
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+    </select>
+
+    <label for="green_access">Green Access (1-10):</label>
+    <input type="number" id="green_access">
+
+    <label for="carbon_footprint">Carbon Footprint:</label>
+    <select id="carbon_footprint">
+        <option value="Niski">Niski</option>
+        <option value="Średni">Średni</option>
+        <option value="Wysoki">Wysoki</option>
+    </select>
+
+    <button onclick="predictPrice()">Predict Price</button>
+
+    <h2>Result:</h2>
+    <div id="result"></div>
+</body>
+</html>
