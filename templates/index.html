@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Prognoza Ceny Nieruchomości</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script>
         let districtData = {};
 
         async function fetchDistricts() {
             let response = await fetch("/get_districts");
             districtData = await response.json();
+            updateDistricts();
         }
 
         function updateDistricts() {
@@ -31,103 +33,122 @@
             let data = {
                 "City": document.getElementById("city").value,
                 "District": document.getElementById("district").value,
-                "Area_m2": parseFloat(document.getElementById("area").value),
-                "Rooms": parseInt(document.getElementById("rooms").value),
-                "Year_Built": parseInt(document.getElementById("year_built").value),
-                "Floor": parseInt(document.getElementById("floor").value),
+                "Area_m2": parseFloat(document.getElementById("area").value) || 0,
+                "Rooms": parseInt(document.getElementById("rooms").value) || 0,
+                "Year_Built": parseInt(document.getElementById("year_built").value) || 0,
+                "Floor": parseInt(document.getElementById("floor").value) || 0,
                 "Condition": document.getElementById("condition").value,
-                "Interest_Rate": parseFloat(document.getElementById("interest_rate").value),
-                "Inflation": parseFloat(document.getElementById("inflation").value),
+                "Interest_Rate": parseFloat(document.getElementById("interest_rate").value) || 0,
+                "Inflation": parseFloat(document.getElementById("inflation").value) || 0,
                 "Market_Trend": document.getElementById("market_trend").value,
                 "Energy_Efficiency": document.getElementById("energy_efficiency").value,
-                "Green_Access": parseInt(document.getElementById("green_access").value),
+                "Green_Access": parseInt(document.getElementById("green_access").value) || 0,
                 "Carbon_Footprint": document.getElementById("carbon_footprint").value
             };
 
-            let response = await fetch("/predict", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
+            console.log("🔵 Wysłane dane:", data); // Debugowanie
 
-            let result = await response.json();
-            document.getElementById("result").innerHTML = 
-                `<p><b>Cena Regresji Liniowej:</b> ${result["Cena Regresji Liniowej"]} PLN</p>
-                 <p><b>Cena XGBoost:</b> ${result["Cena XGBoost"]} PLN</p>`;
+            try {
+                let response = await fetch("/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                let result = await response.json();
+                console.log("🟢 Otrzymana odpowiedź:", result); // Debugowanie
+
+                if (result.error) {
+                    document.getElementById("result").innerHTML = `<p style="color: red;">Błąd: ${result.error}</p>`;
+                } else {
+                    document.getElementById("result").innerHTML = `
+                        <div class="result-box">
+                            <h3>Przewidywana cena</h3>
+                            <p><b>Cena za m² (Regresja Liniowa):</b> ${result["Cena za m² (Regresja Liniowa)"]} PLN</p>
+                            <p><b>Cena za m² (XGBoost):</b> ${result["Cena za m² (XGBoost)"]} PLN</p>
+                            <hr>
+                            <p><b>Całkowita cena (Regresja Liniowa):</b> ${result["Całkowita cena (Regresja Liniowa)"]} PLN</p>
+                            <p><b>Całkowita cena (XGBoost):</b> ${result["Całkowita cena (XGBoost)"]} PLN</p>
+                        </div>`;
+                }
+            } catch (error) {
+                console.error("🔴 Błąd po stronie frontendu:", error);
+                document.getElementById("result").innerHTML = `<p style="color: red;">Wystąpił błąd podczas pobierania danych.</p>`;
+            }
         }
 
         window.onload = async () => {
             await fetchDistricts();
-            updateDistricts();
         };
     </script>
 </head>
 <body>
-    <h1>Prognoza Ceny Nieruchomości</h1>
+    <div class="container">
+        <h1>Prognoza Ceny Nieruchomości</h1>
 
-    <label for="city">Miasto:</label>
-    <select id="city" onchange="updateDistricts()">
-        {% for city in cities %}
-        <option value="{{ city }}">{{ city }}</option>
-        {% endfor %}
-    </select>
+        <label for="city">Miasto:</label>
+        <select id="city" onchange="updateDistricts()">
+            {% for city in cities %}
+            <option value="{{ city }}">{{ city }}</option>
+            {% endfor %}
+        </select>
 
-    <label for="district">Dzielnica:</label>
-    <select id="district"></select>
+        <label for="district">Dzielnica:</label>
+        <select id="district"></select>
 
-    <label for="area">Metraż (m²):</label>
-    <input type="number" id="area">
+        <label for="area">Metraż (m²):</label>
+        <input type="number" id="area">
 
-    <label for="rooms">Liczba pokoi:</label>
-    <input type="number" id="rooms">
+        <label for="rooms">Liczba pokoi:</label>
+        <input type="number" id="rooms">
 
-    <label for="year_built">Rok budowy:</label>
-    <input type="number" id="year_built">
+        <label for="year_built">Rok budowy:</label>
+        <input type="number" id="year_built">
 
-    <label for="floor">Piętro:</label>
-    <input type="number" id="floor">
+        <label for="floor">Piętro:</label>
+        <input type="number" id="floor">
 
-    <label for="condition">Stan mieszkania:</label>
-    <select id="condition">
-        <option value="Nowe">Nowe</option>
-        <option value="Po remoncie">Po remoncie</option>
-        <option value="Do remontu">Do remontu</option>
-    </select>
+        <label for="condition">Stan mieszkania:</label>
+        <select id="condition">
+            <option value="Nowe">Nowe</option>
+            <option value="Po remoncie">Po remoncie</option>
+            <option value="Do remontu">Do remontu</option>
+        </select>
 
-    <label for="interest_rate">Stopa procentowa:</label>
-    <input type="number" id="interest_rate" step="0.1">
+        <label for="interest_rate">Stopa procentowa:</label>
+        <input type="number" id="interest_rate" step="0.1">
 
-    <label for="inflation">Inflacja:</label>
-    <input type="number" id="inflation" step="0.1">
+        <label for="inflation">Inflacja:</label>
+        <input type="number" id="inflation" step="0.1">
 
-    <label for="market_trend">Trend rynkowy:</label>
-    <select id="market_trend">
-        <option value="Wzrostowy">Wzrostowy</option>
-        <option value="Stabilny">Stabilny</option>
-        <option value="Spadkowy">Spadkowy</option>
-    </select>
+        <label for="market_trend">Trend rynkowy:</label>
+        <select id="market_trend">
+            <option value="Wzrostowy">Wzrostowy</option>
+            <option value="Stabilny">Stabilny</option>
+            <option value="Spadkowy">Spadkowy</option>
+        </select>
 
-    <label for="energy_efficiency">Efektywność energetyczna:</label>
-    <select id="energy_efficiency">
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-        <option value="D">D</option>
-    </select>
+        <label for="energy_efficiency">Efektywność energetyczna:</label>
+        <select id="energy_efficiency">
+            <option value="A">A</option>
+            <option value="B">B</option>
+            <option value="C">C</option>
+            <option value="D">D</option>
+        </select>
 
-    <label for="green_access">Dostęp do terenów zielonych (1-10):</label>
-    <input type="number" id="green_access">
+        <label for="green_access">Dostęp do terenów zielonych (1-10):</label>
+        <input type="number" id="green_access">
 
-    <label for="carbon_footprint">Ślad węglowy:</label>
-    <select id="carbon_footprint">
-        <option value="Niski">Niski</option>
-        <option value="Średni">Średni</option>
-        <option value="Wysoki">Wysoki</option>
-    </select>
+        <label for="carbon_footprint">Ślad węglowy:</label>
+        <select id="carbon_footprint">
+            <option value="Niski">Niski</option>
+            <option value="Średni">Średni</option>
+            <option value="Wysoki">Wysoki</option>
+        </select>
 
-    <button onclick="predictPrice()">Oblicz cenę</button>
+        <button onclick="predictPrice()">Oblicz cenę</button>
 
-    <h2>Wynik:</h2>
-    <div id="result"></div>
+        <div id="result"></div>
+    </div>
 </body>
 </html>
