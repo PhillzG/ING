@@ -39,6 +39,11 @@ xgb_model.fit(X_train, y_train)
 
 # Flask App
 app = Flask(__name__)
+@app.route('/get_districts')
+def get_districts():
+    district_mapping = df.groupby("City")["District"].unique().apply(list).to_dict()
+    return jsonify(district_mapping)
+
 
 @app.route('/')
 def home():

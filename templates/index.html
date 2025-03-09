@@ -1,10 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real Estate Price Prediction</title>
+    <title>Prognoza Ceny Nieruchomości</title>
     <script>
+        let districtData = {};
+
+        async function fetchDistricts() {
+            let response = await fetch("/get_districts");
+            districtData = await response.json();
+        }
+
+        function updateDistricts() {
+            let city = document.getElementById("city").value;
+            let districtSelect = document.getElementById("district");
+            districtSelect.innerHTML = "";
+
+            if (districtData[city]) {
+                districtData[city].forEach(district => {
+                    let option = document.createElement("option");
+                    option.value = district;
+                    option.textContent = district;
+                    districtSelect.appendChild(option);
+                });
+            }
+        }
+
         async function predictPrice() {
             let data = {
                 "City": document.getElementById("city").value,
@@ -30,56 +52,62 @@
 
             let result = await response.json();
             document.getElementById("result").innerHTML = 
-                `<p><b>Linear Regression Price:</b> ${result["Linear Regression Price"]} PLN</p>
-                 <p><b>XGBoost Price:</b> ${result["XGBoost Price"]} PLN</p>`;
+                `<p><b>Cena Regresji Liniowej:</b> ${result["Cena Regresji Liniowej"]} PLN</p>
+                 <p><b>Cena XGBoost:</b> ${result["Cena XGBoost"]} PLN</p>`;
         }
+
+        window.onload = async () => {
+            await fetchDistricts();
+            updateDistricts();
+        };
     </script>
 </head>
 <body>
-    <h1>Real Estate Price Prediction</h1>
-    <label for="city">City:</label>
-    <select id="city">
+    <h1>Prognoza Ceny Nieruchomości</h1>
+
+    <label for="city">Miasto:</label>
+    <select id="city" onchange="updateDistricts()">
         {% for city in cities %}
         <option value="{{ city }}">{{ city }}</option>
         {% endfor %}
     </select>
 
-    <label for="district">District:</label>
-    <input type="text" id="district">
+    <label for="district">Dzielnica:</label>
+    <select id="district"></select>
 
-    <label for="area">Area (m²):</label>
+    <label for="area">Metraż (m²):</label>
     <input type="number" id="area">
 
-    <label for="rooms">Rooms:</label>
+    <label for="rooms">Liczba pokoi:</label>
     <input type="number" id="rooms">
 
-    <label for="year_built">Year Built:</label>
+    <label for="year_built">Rok budowy:</label>
     <input type="number" id="year_built">
 
-    <label for="floor">Floor:</label>
+    <label for="floor">Piętro:</label>
     <input type="number" id="floor">
 
-    <label for="condition">Condition:</label>
+    <label for="condition">Stan mieszkania:</label>
     <select id="condition">
         <option value="Nowe">Nowe</option>
         <option value="Po remoncie">Po remoncie</option>
         <option value="Do remontu">Do remontu</option>
     </select>
 
-    <label for="interest_rate">Interest Rate:</label>
+    <label for="interest_rate">Stopa procentowa:</label>
     <input type="number" id="interest_rate" step="0.1">
 
-    <label for="inflation">Inflation:</label>
+    <label for="inflation">Inflacja:</label>
     <input type="number" id="inflation" step="0.1">
 
-    <label for="market_trend">Market Trend:</label>
+    <label for="market_trend">Trend rynkowy:</label>
     <select id="market_trend">
         <option value="Wzrostowy">Wzrostowy</option>
         <option value="Stabilny">Stabilny</option>
         <option value="Spadkowy">Spadkowy</option>
     </select>
 
-    <label for="energy_efficiency">Energy Efficiency:</label>
+    <label for="energy_efficiency">Efektywność energetyczna:</label>
     <select id="energy_efficiency">
         <option value="A">A</option>
         <option value="B">B</option>
@@ -87,19 +115,19 @@
         <option value="D">D</option>
     </select>
 
-    <label for="green_access">Green Access (1-10):</label>
+    <label for="green_access">Dostęp do terenów zielonych (1-10):</label>
     <input type="number" id="green_access">
 
-    <label for="carbon_footprint">Carbon Footprint:</label>
+    <label for="carbon_footprint">Ślad węglowy:</label>
     <select id="carbon_footprint">
         <option value="Niski">Niski</option>
         <option value="Średni">Średni</option>
         <option value="Wysoki">Wysoki</option>
     </select>
 
-    <button onclick="predictPrice()">Predict Price</button>
+    <button onclick="predictPrice()">Oblicz cenę</button>
 
-    <h2>Result:</h2>
+    <h2>Wynik:</h2>
     <div id="result"></div>
 </body>
 </html>
