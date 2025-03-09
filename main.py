@@ -10,7 +10,7 @@ from sklearn.metrics import mean_absolute_error
 # Load dataset
 df = pd.read_csv("synthetic_real_estate_data.csv")
 
-# **1. Usunięcie wartości odstających (outliers)**
+
 df = df[df["Total_Price"] < df["Total_Price"].quantile(0.99)]  # Usuwamy górne 1%
 df["Price_per_m2"] = df["Total_Price"] / df["Area_m2"]
 
@@ -19,13 +19,13 @@ categorical_features = ["City", "District", "Condition", "Market_Trend", "Energy
 numerical_features = ["Area_m2", "Rooms", "Year_Built", "Floor", "Interest_Rate", "Inflation", "Green_Access"]
 target_variable = "Price_per_m2"
 
-# **2. Normalizacja danych (RobustScaler zamiast StandardScaler)**
+
 encoder = OneHotEncoder(drop='first', sparse_output=False, handle_unknown='ignore')
 categorical_encoded = encoder.fit_transform(df[categorical_features])
 categorical_columns = encoder.get_feature_names_out(categorical_features)
 categorical_df = pd.DataFrame(categorical_encoded, columns=categorical_columns)
 
-scaler = RobustScaler()  # Lepiej radzi sobie z wartościami odstającymi
+scaler = RobustScaler()  
 numerical_scaled = scaler.fit_transform(df[numerical_features])
 numerical_df = pd.DataFrame(numerical_scaled, columns=numerical_features)
 
@@ -38,13 +38,13 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 linear_model = LinearRegression()
 linear_model.fit(X_train, y_train)
 
-# **3. Ulepszony XGBoost (Hyperparameter Tuning)**
+
 xgb_model = XGBRegressor(
-    n_estimators=300,        # Więcej drzew dla lepszego dopasowania
-    learning_rate=0.05,      # Mniejsze tempo uczenia, stabilniejsze predykcje
-    max_depth=6,             # Optymalna głębokość drzewa
-    subsample=0.8,           # Ograniczenie danych do uniknięcia przeuczenia
-    colsample_bytree=0.8,    # Użycie tylko części cech dla lepszej generalizacji
+    n_estimators=300,        
+    learning_rate=0.05,      
+    max_depth=6,            
+    subsample=0.8,           
+    colsample_bytree=0.8,    
     random_state=42
 )
 xgb_model.fit(X_train, y_train)
